@@ -1,0 +1,9 @@
+<mat-card serviceColor color="{{ service.color }}" class="service-item" (click)="onServiceClick()">
+    <mat-card-content>
+        <mat-icon svgIcon="{{ service.icon }}"></mat-icon>
+        <mat-card-title>
+            <h3>{{ service.name }}</h3>
+        </mat-card-title>
+        <mat-card-subtitle>{{ service.description }}</mat-card-subtitle>
+    </mat-card-content>
+</mat-card>

@@ -1,0 +1,51 @@
+.container {
+    width: 1000px;
+    height: 600px;
+}
+.header {
+    width: 100%;
+    text-align: center;
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 0%;
+}
+
+mat-list {
+    margin-bottom: 5%;
+    font-size: 20px;
+    font-weight: bold;
+    margin-left: 10%;
+}
+
+mat-divider {
+    width: 80%;
+    margin: 0 auto;
+}
+
+.return-button {
+    margin: 0 auto;
+    width: 15%;
+    height: 50px;
+    font-size: 18px;
+    font-weight: 900;
+}
+
+.please-subscribe {
+    margin: 0 auto;
+    width: 80%;
+    height: 50px;
+    font-size: 18px;
+    font-weight: 900;
+    text-align: center;
+    margin-top: 5%;
+}
+
+.no-actions {
+    margin: 0 auto;
+    width: 80%;
+    height: 50px;
+    font-size: 18px;
+    font-weight: 900;
+    text-align: center;
+    margin-top: 5%;
+}

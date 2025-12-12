@@ -1,0 +1,39 @@
+<div class="container">
+    <div class="header">
+        <div class="title">
+            {{data.area.actions[0].name}}
+        </div>
+        <div class="subtitle">
+            Description: {{data.area.actions[0].description}}
+        </div>
+        <h3>Paramètres</h3>
+    </div>
+    <mat-card-title>
+    </mat-card-title>
+    <mat-card-content>
+        <form [formGroup]="paramForm" *ngIf="params.length > 0 else noParam">
+            <mat-form-field *ngFor="let parameter of params" appearance="outline">
+                <mat-label>{{parameter.name}}</mat-label>
+                <input class="formField" matInput *ngIf="parameter.type === 'string'" formControlName="{{parameter.name}}" type="text"
+                    placeholder="">
+                <input class="formField" matInput *ngIf="parameter.type === 'number'" formControlName="{{parameter.name}}"
+                    type="number" placeholder="">
+                <input class="formField" matInput *ngIf="parameter.type === 'date'" formControlName="{{parameter.name}}" type="date"
+                    placeholder="">
+                <input class="formField" matInput *ngIf="parameter.type === 'time'" formControlName="{{parameter.name}}" type="time"
+                    placeholder="">
+            </mat-form-field>
+        </form>
+    </mat-card-content>
+    <mat-divider></mat-divider>
+    <mat-dialog-actions>
+        <button mat-button (click)="returnToActionList()"><mat-icon>arrow_back</mat-icon><b>RETOUR</b></button>
+        <button class="save-button" mat-raised-button color="primary" (click)="onSaveClick()">ENREGISTRER</button>
+    </mat-dialog-actions>
+</div>
+
+<ng-template #noParam>
+    <div class="no-param">
+        <p>Aucun paramètre nécessaire.</p>
+    </div>
+</ng-template>

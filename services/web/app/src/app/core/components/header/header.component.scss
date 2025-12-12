@@ -1,0 +1,22 @@
+mat-toolbar {
+  justify-content: space-between;
+
+  img {
+    height: 50px;
+    width: 50px;
+  }
+}
+
+.start {
+  display: flex;
+  align-items: center;
+  span {
+    font-size: 25px;
+    font-weight: bold;
+  }
+}
+
+button {
+  margin-left: 10px;
+  font-size: 18px;
+}

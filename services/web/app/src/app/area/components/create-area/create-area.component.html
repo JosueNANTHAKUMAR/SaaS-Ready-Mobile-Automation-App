@@ -1,0 +1,51 @@
+<mat-card class="card">
+    <mat-card-title>
+        <h1>Créer une AREA</h1>
+    </mat-card-title>
+    <mat-card-content>
+        <form [formGroup]="submitAreaForm">
+            <div class="form">
+                <mat-form-field class="formField" appearance="outline">
+                    <mat-label>Nom</mat-label>
+                    <input matInput formControlName="name" type="text" placeholder="Nom" />
+                </mat-form-field>
+                <mat-form-field class="formField" appearance="outline">
+                    <mat-label>Description</mat-label>
+                    <input matInput formControlName="description" type="text" placeholder="Description" />
+                </mat-form-field>
+            </div>
+            <div class="container">
+                <div class="actions">
+                    <h2 *ngIf="area.actions.length > 0">{{ area.actions[0].name }}</h2>
+                    <h2 *ngIf="area.actions.length === 0">Action</h2>
+                    <div class="parameter_list" *ngIf="area.actions.length > 0">
+                        <div class="parameter" *ngFor="let parameter of area.actions[0].parameters">
+                            <p><span class="bold">{{ parameter.name }}:</span> {{ parameter.value }}</p>
+                        </div>
+                    </div>
+                    <button class="choose-button" mat-raised-button color="primary" *ngIf="area.actions.length === 0"
+                        (click)="openDialog('action')">CHOISIR</button>
+                    <button class="choose-button" mat-raised-button color="primary" *ngIf="area.actions.length > 0"
+                        (click)="openDialog('action')">MODIFIER</button>
+                </div>
+                <div class="reactions">
+                    <h2 *ngIf="area.reactions.length > 0">{{ area.reactions[0].name }}</h2>
+
+                    <h2 *ngIf="area.reactions.length === 0">REAction</h2>
+                    <div class="parameter_list" *ngIf="area.reactions.length > 0">
+                        <div class="parameter" *ngFor="let parameter of area.reactions[0].parameters">
+                            <p><span class="bold">{{ parameter.name }}:</span> {{ parameter.value }}</p>
+                        </div>
+                    </div>
+                    <button class="choose-button" mat-raised-button color="primary" *ngIf="area.reactions.length === 0"
+                        (click)="openDialog('reaction')">CHOISIR</button>
+                    <button class="choose-button" mat-raised-button color="primary" *ngIf="area.reactions.length > 0"
+                        (click)="openDialog('reaction')">MODIFIER</button>
+                </div>
+            </div>
+        </form>
+    </mat-card-content>
+    <mat-card-actions>
+        <button class="submit-button" mat-raised-button color="accent" (click)="submitArea()">CRÉER</button>
+    </mat-card-actions>
+</mat-card>

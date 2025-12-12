@@ -1,0 +1,35 @@
+<div class="container" *ngIf="service$ | async as service">
+
+    <div class="header">
+        <h1>{{service.name || 'Choose a Service'}}</h1>
+        <p>{{service.description}}
+            <button mat-raised-button color="primary" *ngIf="!isSubscribed" (click)="subscribeToService()">S'ABONNER<mat-icon>add</mat-icon></button>
+        </p>
+        <mat-divider></mat-divider>
+        <h3>REActions</h3>
+    </div>
+    <div *ngIf="isSubscribed else pleaseSubscribe">
+        <mat-list *ngIf="service.reactions.length > 0 else noActions">
+            <mat-list-item *ngFor="let reaction of service.reactions" (click)="onReactionClick(reaction)">
+                <span matListItemTitle>{{reaction.name}}</span>
+                <span matListItemLine>{{reaction.description}}</span>
+            </mat-list-item>
+        </mat-list>
+    </div>
+    <mat-divider></mat-divider>
+    <mat-dialog-actions>
+        <button class="return-button" mat-raised-button color="primary" (click)="returnToServiceList()">RETOUR</button>
+    </mat-dialog-actions>
+</div>
+
+<ng-template #noActions>
+    <div class="no-actions">
+        <p>Ce service ne propose aucune reaction.</p>
+    </div>
+</ng-template>
+
+<ng-template #pleaseSubscribe>
+    <div class="please-subscribe">
+        <p>Vous devez vous abonner à ce service pour pouvoir utiliser ses reactions.</p>
+    </div>
+</ng-template>

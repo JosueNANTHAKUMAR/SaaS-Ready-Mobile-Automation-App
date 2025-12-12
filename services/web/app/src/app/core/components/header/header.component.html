@@ -1,0 +1,25 @@
+<div class="container">
+    <mat-toolbar color="primary" role="header">
+        <div class="start">
+            <img src="assets/logo-white.png" alt="logo" (click)="goHome()" class="logo" />
+            <span>Centralize</span>
+            <div class="spacer"></div>
+            <div class="menu-button">
+                <button mat-button routerLink="/home">Services</button>
+                <button mat-button routerLink="/my-area">Mes AREA</button>
+                <button mat-raised-button routerLink="/create">
+                    AREA   <mat-icon>add</mat-icon>
+                </button>
+            </div>
+        </div>
+        <div class="end">
+            <div *ngIf="isLoggedIn; else showLogin">
+                <button class="logout" mat-raised-button (click)="logout()">Déconnexion<mat-icon>logout</mat-icon></button>
+            </div>
+            <ng-template #showLogin>
+                <button mat-button routerLink="/login" class="button-login">Connexion<mat-icon>login</mat-icon></button>
+                <button mat-raised-button routerLink="/register" class="button-register">S'enregistrer<mat-icon>person_add</mat-icon></button>
+            </ng-template>
+        </div>
+    </mat-toolbar>
+</div>

@@ -1,0 +1,5 @@
+<app-service-item
+  *ngFor="let service of $services | async"
+  [service]="service"
+  (serviceId)="onServiceClick($event)"
+></app-service-item>

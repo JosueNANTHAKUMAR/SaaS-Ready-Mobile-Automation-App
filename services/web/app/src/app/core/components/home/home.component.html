@@ -1,0 +1,5 @@
+<div class="centered-content">
+    <h1>Liste des services</h1>
+    <app-service-item *ngFor="let service of $services | async" [service]="service"
+        (serviceId)="openDialog($event)"></app-service-item>
+</div>

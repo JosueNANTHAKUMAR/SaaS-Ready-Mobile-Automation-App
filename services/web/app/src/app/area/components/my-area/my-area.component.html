@@ -1,0 +1,26 @@
+<h1 class="title">Mes AREA</h1>
+
+<mat-list>
+    <mat-card *ngFor="let area of areas$ | async">
+        <mat-card-header>
+            <mat-card-title>
+                <h1 class="areaName">{{ area.name }}</h1>
+            </mat-card-title>
+            <mat-card-subtitle>{{ area.description }}</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+            <mat-divider></mat-divider>
+            <h4 class="subtitle">Action</h4>
+            <p *ngFor="let action of area.actions" class="content">
+                {{ action.description }}
+            </p>
+            <mat-divider></mat-divider>
+            <h4 class="subtitle">Reaction</h4>
+            <p *ngFor="let reaction of area.reactions" class="content">
+                {{ reaction.description }}
+            </p>
+            <mat-slide-toggle [checked]="area.enabled" color="accent" (change)="toggleArea(area)">
+            </mat-slide-toggle>
+        </mat-card-content>
+    </mat-card>
+</mat-list>
