@@ -1,9 +1,9 @@
 # Centralize - Premium Mobile Experience (2025)
 
 <div style="display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;">
-  <img src="/home/josue/.gemini/antigravity/brain/3cf68799-70c4-4cdd-b90e-053df9d657b8/malt_login_premium_1765924462359.png" alt="Login Screen" style="border-radius: 30px; width: 300px; height: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-  <img src="/home/josue/.gemini/antigravity/brain/3cf68799-70c4-4cdd-b90e-053df9d657b8/malt_dashboard_premium_1765924475951.png" alt="Dashboard" style="border-radius: 30px; width: 300px; height: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-  <img src="/home/josue/.gemini/antigravity/brain/3cf68799-70c4-4cdd-b90e-053df9d657b8/malt_automation_premium_1765924491600.png" alt="Automation Flow" style="border-radius: 30px; width: 300px; height: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+  <img src="assets/login_preview.png" alt="Login Screen" style="border-radius: 30px; width: 300px; height: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+  <img src="assets/dashboard_preview.png" alt="Dashboard" style="border-radius: 30px; width: 300px; height: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+  <img src="assets/automation_preview.png" alt="Automation Flow" style="border-radius: 30px; width: 300px; height: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
 </div>
 
 Bienvenue sur la nouvelle version de **Centralize**, une application mobile repensée avec une esthétique **2025 Premium**.
