@@ -1,7 +1,10 @@
+import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:gamestore/pages/area/ServiceLoginWebViewPage.dart';
 import 'package:gamestore/pages/area/list_area.dart';
 import 'package:gamestore/pages/home/home.dart';
+import 'package:gamestore/theme/app_theme.dart';
+import 'package:glassmorphism/glassmorphism.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -52,13 +55,14 @@ class CreateAreaPageState extends State<CreateAreaPage> {
         });
       } else {
         _showErrorDialog(
-            'Erreur lors de la récupération des services: ${response.statusCode}');
+            'Error fetching services: ${response.statusCode}');
       }
     } catch (error) {
-      _showErrorDialog('Une erreur s\'est produite: $error');
+      _showErrorDialog('An error occurred: $error');
     }
   }
 
+  // ... (Keep existing helper methods: _fetchOAuthLink, _getHeaders, fetchToken)
   Future<String> _fetchOAuthLink(int serviceId) async {
     final url = Uri.parse('${dotenv.env['BASE_URL']}/auth/services/$serviceId');
     final response = await http.get(url, headers: await _getHeaders());
@@ -94,17 +98,19 @@ class CreateAreaPageState extends State<CreateAreaPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: BackButton(
+          color: Colors.white,
           onPressed: () => Navigator.of(context).pushReplacement(
               MaterialPageRoute(builder: (context) => const HomePage())),
         ),
-        title: const Text("Create Area"),
-        backgroundColor: Colors.grey[600],
+        title: const Text("Create Area", style: TextStyle(color: Colors.white)),
         actions: [
           IconButton(
-            icon: Icon(Icons.list),
+            icon: const Icon(Icons.list, color: Colors.white),
             onPressed: () {
               showDialog(
                 context: context,
@@ -116,205 +122,281 @@ class CreateAreaPageState extends State<CreateAreaPage> {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: ListView(
-          children: [
-            Container(
-              margin: const EdgeInsets.only(bottom: 16.0),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    TextFormField(
-                      decoration: InputDecoration(
-                        labelText: 'Nom',
-                        hintText: 'Entrez un nom',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                      ),
-                      onChanged: (value) {
-                        setState(() {
-                          parameters['name'] = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value == null) {
-                          return 'Entrez un nom !.';
-                        }
-                        return null;
-                      },
+      body: Stack(
+        children: [
+          // Background
+          Container(
+            decoration: const BoxDecoration(
+              gradient: AppTheme.primaryGradient,
+            ),
+          ),
+          Positioned(
+            top: -100,
+            right: -100,
+            child: FadeInRight(
+              duration: const Duration(seconds: 2),
+              child: Container(
+                width: 300,
+                height: 300,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppTheme.primary.withOpacity(0.4),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.primary.withOpacity(0.3),
+                      blurRadius: 100,
+                      spreadRadius: 20,
                     ),
-                    const SizedBox(height: 16.0),
-                    TextFormField(
-                      decoration: InputDecoration(
-                        labelText: 'Description',
-                        hintText: 'Entrez une description',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                      ),
-                      onChanged: (value) {
-                        setState(() {
-                          parameters['description'] = value;
-                        });
-                      },
-                    ),
-                    DropdownButtonFormField<dynamic>(
-                      value: selectedService,
-                      items: servicesData.map((service) {
-                        return DropdownMenuItem<dynamic>(
-                          value: service,
-                          child: Text(service['name'] ?? 'Unknown'),
-                        );
-                      }).toList(),
-                      hint: const Text("Sélectionnez un Service"),
-                      onChanged: (dynamic value) async {
-                        setState(() {
-                          selectedService = value;
-                          selectedReactionService = null;
-                          parameters['actions'] = [];
-                          parameters['reactions'] = [];
-                        });
-                        if (value['subscribable'] == true) {
-                          String? oauthLink;
-                          int id = value['id'];
-                          try {
-                            oauthLink = await _fetchOAuthLink(value['id']);
-                            // ignore: unnecessary_null_comparison
-                            if (oauthLink != null) {
-                              // ignore: use_build_context_synchronously
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => WebViewPage(
-                                      oauthLink:
-                                          oauthLink ?? 'Valeur par défaut',
-                                      id: id),
-                                ),
-                              );
-                            } else {
-                              _showErrorDialog('Le lien OAuth est nul.');
-                            }
-                          } catch (error) {
-                            _showErrorDialog(
-                                'Erreur lors de la récupération du lien OAuth: $error');
-                          }
-                        }
-                      },
-                      validator: (value) {
-                        if (value == null) {
-                          return 'Entrez un service.';
-                        }
-                        return null;
-                      },
-                    ),
-                    if (selectedService != null)
-                      DropdownButtonFormField<dynamic>(
-                        value: selectedReactionService,
-                        items: servicesData.map((service) {
-                          return DropdownMenuItem<dynamic>(
-                            value: service,
-                            child: Text(service['name'] ?? 'Unknown'),
-                          );
-                        }).toList(),
-                        hint: const Text("Sélectionnez un service"),
-                        onChanged: (dynamic value) async {
-                          setState(() {
-                            selectedReactionService = value;
-                            parameters['actions'] = [];
-                            parameters['reactions'] = [];
-                          });
-                          if (value['subscribable'] == true) {
-                            String? oauthLink;
-                            int id = value['id'];
-                            try {
-                              oauthLink = await _fetchOAuthLink(value['id']);
-                              // ignore: unnecessary_null_comparison
-                              if (oauthLink != null) {
-                                // ignore: use_build_context_synchronously
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => WebViewPage(
-                                        oauthLink:
-                                            oauthLink ?? 'Valeur par défaut',
-                                        id: id),
-                                  ),
-                                );
-                              } else {
-                                _showErrorDialog('Le lien OAuth est nul.');
-                              }
-                            } catch (error) {
-                              _showErrorDialog(
-                                  'Erreur lors de la récupération du lien OAuth: $error');
-                            }
-                          }
-                        },
-                        validator: (value) {
-                          if (value == null) {
-                            return 'Entrez un service !';
-                          }
-                          return null;
-                        },
-                      ),
                   ],
                 ),
               ),
             ),
-            if (selectedService != null && selectedReactionService != null)
-              Column(
-                children: [
-                  _buildActionDropdown(),
-                  _buildReactionDropdown(),
-                  _buildParameterFields(),
-                ],
-              ),
-            const SizedBox(height: 24.0),
-            ElevatedButton(
-              onPressed: _submitArea,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.grey[600],
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 100, vertical: 25),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
+          ),
+          
+          // Content
+          SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: FadeInUp(
+                child: GlassmorphicContainer(
+                  width: double.infinity,
+                  height: MediaQuery.of(context).size.height * 0.85, // Dynamic height or fit content
+                  borderRadius: 20,
+                  blur: 20,
+                  alignment: Alignment.center,
+                  border: 2,
+                  linearGradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.white.withOpacity(0.1),
+                      Colors.white.withOpacity(0.05),
+                    ],
+                  ),
+                  borderGradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.white.withOpacity(0.5),
+                      Colors.white.withOpacity(0.1),
+                    ],
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Form(
+                      key: _formKey,
+                      child: ListView(
+                        // shrinkWrap: true, // Use shrinkWrap if inside another scroll view, but here we have fixed height container
+                        children: [
+                          _buildTextField('Name', 'Enter a name', (value) {
+                            setState(() {
+                              parameters['name'] = value;
+                            });
+                          }),
+                          const SizedBox(height: 16.0),
+                          _buildTextField('Description', 'Enter a description', (value) {
+                            setState(() {
+                              parameters['description'] = value;
+                            });
+                          }),
+                          const SizedBox(height: 20),
+                          
+                          _buildDropdown(
+                            value: selectedService,
+                            items: servicesData,
+                            hint: "Select Service",
+                            onChanged: (dynamic value) async {
+                              setState(() {
+                                selectedService = value;
+                                selectedReactionService = null;
+                                parameters['actions'] = [];
+                                parameters['reactions'] = [];
+                              });
+                              if (value['subscribable'] == true) {
+                                // ... (Keep existing OAuth logic)
+                                String? oauthLink;
+                                int id = value['id'];
+                                try {
+                                  oauthLink = await _fetchOAuthLink(value['id']);
+                                  if (oauthLink != null) {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => WebViewPage(
+                                            oauthLink: oauthLink ?? '',
+                                            id: id),
+                                      ),
+                                    );
+                                  } else {
+                                    _showErrorDialog('OAuth link is null.');
+                                  }
+                                } catch (error) {
+                                  _showErrorDialog('Error fetching OAuth link: $error');
+                                }
+                              }
+                            },
+                          ),
+                          
+                          const SizedBox(height: 16),
+                          
+                          if (selectedService != null)
+                            _buildDropdown(
+                              value: selectedReactionService,
+                              items: servicesData,
+                              hint: "Select Reaction Service",
+                              onChanged: (dynamic value) async {
+                                setState(() {
+                                  selectedReactionService = value;
+                                  parameters['actions'] = [];
+                                  parameters['reactions'] = [];
+                                });
+                                if (value['subscribable'] == true) {
+                                   // ... (Keep existing OAuth logic)
+                                   String? oauthLink;
+                                   int id = value['id'];
+                                   try {
+                                     oauthLink = await _fetchOAuthLink(value['id']);
+                                     if (oauthLink != null) {
+                                       Navigator.push(
+                                         context,
+                                         MaterialPageRoute(
+                                           builder: (context) => WebViewPage(
+                                               oauthLink: oauthLink ?? '',
+                                               id: id),
+                                         ),
+                                       );
+                                     } else {
+                                       _showErrorDialog('OAuth link is null.');
+                                     }
+                                   } catch (error) {
+                                     _showErrorDialog('Error fetching OAuth link: $error');
+                                   }
+                                }
+                              },
+                            ),
+                          
+                          const SizedBox(height: 20),
+                          
+                          if (selectedService != null && selectedReactionService != null)
+                            Column(
+                              children: [
+                                _buildActionDropdown(),
+                                const SizedBox(height: 16),
+                                _buildReactionDropdown(),
+                                const SizedBox(height: 16),
+                                _buildParameterFields(),
+                              ],
+                            ),
+                          
+                          const SizedBox(height: 30),
+                          
+                          SizedBox(
+                            width: double.infinity,
+                            height: 50,
+                            child: ElevatedButton(
+                              onPressed: _submitArea,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppTheme.primary,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                              ),
+                              child: const Text("Create AREA", style: TextStyle(fontSize: 18)),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
               ),
-              child: const Text("Créer une AREA"),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
+  Widget _buildTextField(String label, String hint, Function(String) onChanged) {
+    return TextFormField(
+      style: const TextStyle(color: Colors.white),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(color: Colors.white.withOpacity(0.7)),
+        hintText: hint,
+        hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(15),
+          borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(15),
+          borderSide: const BorderSide(color: AppTheme.primary),
+        ),
+        filled: true,
+        fillColor: Colors.white.withOpacity(0.1),
+      ),
+      onChanged: onChanged,
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Please enter $label';
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildDropdown({
+    required dynamic value,
+    required List<dynamic> items,
+    required String hint,
+    required Function(dynamic) onChanged,
+  }) {
+    return DropdownButtonFormField<dynamic>(
+      value: value,
+      dropdownColor: AppTheme.surface,
+      style: const TextStyle(color: Colors.white),
+      decoration: InputDecoration(
+        labelText: hint,
+        labelStyle: TextStyle(color: Colors.white.withOpacity(0.7)),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(15),
+          borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(15),
+          borderSide: const BorderSide(color: AppTheme.primary),
+        ),
+        filled: true,
+        fillColor: Colors.white.withOpacity(0.1),
+      ),
+      items: items.map((item) {
+        return DropdownMenuItem<dynamic>(
+          value: item,
+          child: Text(item['name'] ?? 'Unknown'),
+        );
+      }).toList(),
+      onChanged: onChanged,
+      validator: (value) => value == null ? 'Required' : null,
+    );
+  }
+
+  // ... (Update _buildActionDropdown and _buildReactionDropdown to use _buildDropdown style or wrap them)
+  // For brevity, I'll assume they return DropdownButtonFormField which I should style similarly.
+  // I will override the theme for these specific widgets or just use the global theme which I set up.
+  // But explicit styling is safer.
+  
   Widget _buildActionDropdown() {
     if (selectedService != null) {
       final actions = selectedService['actions'] as List<dynamic>;
-      final actionDropdownItems = actions.map((action) {
-        return DropdownMenuItem<dynamic>(
-          value: action,
-          child: Text(action['name'] ?? 'Unknown'),
-        );
-      }).toList();
-
-      return DropdownButtonFormField<dynamic>(
-        value:
-            parameters['actions'].isNotEmpty ? parameters['actions'][0] : null,
-        items: actionDropdownItems,
-        hint: const Text("Sélectionnez une Action"),
+      return _buildDropdown(
+        value: parameters['actions'].isNotEmpty ? parameters['actions'][0] : null,
+        items: actions,
+        hint: "Select Action",
         onChanged: (dynamic value) {
           setState(() {
             parameters['actions'] = [value];
           });
-        },
-        validator: (value) {
-          if (value == null) {
-            return 'Entrez une Action !';
-          }
-          return null;
         },
       );
     } else {
@@ -325,30 +407,15 @@ class CreateAreaPageState extends State<CreateAreaPage> {
   Widget _buildReactionDropdown() {
     if (selectedReactionService != null) {
       final reactions = selectedReactionService['reactions'] as List<dynamic>;
-      final reactionDropdownItems = reactions.map((reaction) {
-        return DropdownMenuItem<dynamic>(
-          value: reaction,
-          child: Text(reaction['name'] ?? 'Unknown'),
-        );
-      }).toList();
-
-      return DropdownButtonFormField<dynamic>(
-        value: parameters['reactions'].isNotEmpty
-            ? parameters['reactions'][0]
-            : null,
-        items: reactionDropdownItems,
-        hint: const Text("Sélectionnez une Reaction"),
+      return _buildDropdown(
+        value: parameters['reactions'].isNotEmpty ? parameters['reactions'][0] : null,
+        items: reactions,
+        hint: "Select Reaction",
         onChanged: (dynamic value) {
           setState(() {
             parameters['reactions'] = [value];
             parameters['reactionParameters'] = [];
           });
-        },
-        validator: (value) {
-          if (value == null) {
-            return 'Entrez une Réaction.';
-          }
-          return null;
         },
       );
     } else {
@@ -356,108 +423,119 @@ class CreateAreaPageState extends State<CreateAreaPage> {
     }
   }
 
-  @override
-  void dispose() {
-    _controllers.forEach((key, controller) {
-      controller.dispose();
-    });
-    super.dispose();
-  }
-
+  // ... (Update _buildParameterField to use styled inputs)
   Widget _buildParameterField(dynamic param) {
     TextEditingController controller = _getControllerForParam(param);
-
     String type = param['type'];
 
     if (type.startsWith("selector:")) {
       List<String> options = type.substring(10, type.length - 1).split(', ');
-
       return Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Row(
-          children: [
-            Text(param['name'] ?? 'Nom inconnu'),
-            const SizedBox(width: 10),
-            Expanded(
-              child: DropdownButtonFormField<String>(
-                value: param['value'],
-                decoration: const InputDecoration(
-                  labelText: 'Choisir une option',
-                  border: OutlineInputBorder(),
-                ),
-                items: options.map<DropdownMenuItem<String>>((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-                onChanged: (String? newValue) {
-                  setState(() {
-                    param['value'] = newValue!;
-                  });
-                },
-              ),
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: DropdownButtonFormField<String>(
+          value: param['value'],
+          dropdownColor: AppTheme.surface,
+          style: const TextStyle(color: Colors.white),
+          decoration: InputDecoration(
+            labelText: param['name'] ?? 'Unknown',
+            labelStyle: TextStyle(color: Colors.white.withOpacity(0.7)),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(15),
+              borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
             ),
-          ],
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(15),
+              borderSide: const BorderSide(color: AppTheme.primary),
+            ),
+            filled: true,
+            fillColor: Colors.white.withOpacity(0.1),
+          ),
+          items: options.map<DropdownMenuItem<String>>((String value) {
+            return DropdownMenuItem<String>(
+              value: value,
+              child: Text(value),
+            );
+          }).toList(),
+          onChanged: (String? newValue) {
+            setState(() {
+              param['value'] = newValue!;
+            });
+          },
         ),
       );
     } else {
       return Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Row(
-          children: [
-            Text(param['name'] ?? 'Nom inconnu'),
-            const SizedBox(width: 10),
-            Expanded(
-              child: TextFormField(
-                controller: controller,
-                readOnly: param['type'] == 'date' || param['type'] == 'time',
-                decoration: const InputDecoration(
-                  labelText: 'Valeur',
-                  border: OutlineInputBorder(),
-                ),
-                keyboardType: TextInputType.text,
-                onTap: () async {
-                  if (param['type'] == 'date') {
-                    DateTime? date = await showDatePicker(
-                      context: context,
-                      initialDate: DateTime.now(),
-                      firstDate: DateTime(1900),
-                      lastDate: DateTime(2100),
-                    );
-                    if (date != null) {
-                      param['value'] = date.toLocal().toString().split(' ')[0];
-                      controller.text = param['value'];
-                      setState(() {});
-                    }
-                  } else if (param['type'] == 'time') {
-                    TimeOfDay? time = await showTimePicker(
-                      context: context,
-                      initialTime: TimeOfDay.now(),
-                    );
-                    if (time != null) {
-                      param['value'] =
-                          '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
-                      controller.text = param['value'];
-                      setState(() {});
-                    }
-                  }
-                },
-                onChanged: (value) {
-                  setState(() {
-                    final parts = value.split(' ');
-                    param['value'] = parts[0];
-                    controller.text = param['value'];
-                  });
-                },
-              ),
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: TextFormField(
+          controller: controller,
+          readOnly: param['type'] == 'date' || param['type'] == 'time',
+          style: const TextStyle(color: Colors.white),
+          decoration: InputDecoration(
+            labelText: param['name'] ?? 'Value',
+            labelStyle: TextStyle(color: Colors.white.withOpacity(0.7)),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(15),
+              borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
             ),
-          ],
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(15),
+              borderSide: const BorderSide(color: AppTheme.primary),
+            ),
+            filled: true,
+            fillColor: Colors.white.withOpacity(0.1),
+          ),
+          onTap: () async {
+             // ... (Keep existing date/time picker logic)
+             if (param['type'] == 'date') {
+                DateTime? date = await showDatePicker(
+                  context: context,
+                  initialDate: DateTime.now(),
+                  firstDate: DateTime(1900),
+                  lastDate: DateTime(2100),
+                  builder: (context, child) {
+                    return Theme(
+                      data: AppTheme.darkTheme,
+                      child: child!,
+                    );
+                  },
+                );
+                if (date != null) {
+                  param['value'] = date.toLocal().toString().split(' ')[0];
+                  controller.text = param['value'];
+                  setState(() {});
+                }
+              } else if (param['type'] == 'time') {
+                TimeOfDay? time = await showTimePicker(
+                  context: context,
+                  initialTime: TimeOfDay.now(),
+                  builder: (context, child) {
+                    return Theme(
+                      data: AppTheme.darkTheme,
+                      child: child!,
+                    );
+                  },
+                );
+                if (time != null) {
+                  param['value'] =
+                      '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+                  controller.text = param['value'];
+                  setState(() {});
+                }
+              }
+          },
+          onChanged: (value) {
+            setState(() {
+              final parts = value.split(' ');
+              param['value'] = parts[0];
+              controller.text = param['value'];
+            });
+          },
         ),
       );
     }
   }
 
+  // ... (Keep existing logic methods: _getControllerForParam, _buildActionParameterFields, _buildReactionParameterFields, _buildParameterFields, _submitArea, transformParameters, submitArea)
   TextEditingController _getControllerForParam(dynamic param) {
     if (!_controllers.containsKey(param['name'])) {
       _controllers[param['name']] =
@@ -508,7 +586,7 @@ class CreateAreaPageState extends State<CreateAreaPage> {
   void _submitArea() async {
     if (_formKey.currentState!.validate()) {
       if (selectedReactionService == null) {
-        _showErrorDialog('Veuillez sélectionner un service de réaction.');
+        _showErrorDialog('Please select a reaction service.');
         return;
       }
 
@@ -541,7 +619,7 @@ class CreateAreaPageState extends State<CreateAreaPage> {
         await submitArea(areaJson);
         Navigator.pop(context);
       } catch (error) {
-        _showErrorDialog('Erreur lors de la soumission de l\'aire : $error');
+        _showErrorDialog('Error submitting area: $error');
       }
     }
   }
@@ -569,16 +647,16 @@ class CreateAreaPageState extends State<CreateAreaPage> {
         await storeAreaName(areaName);
         Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => const HomePage()));
-        _showErrorDialog("AREA créée avec Succès !");
+        _showErrorDialog("AREA created successfully!");
       } else {
         Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => const CreateAreaPage()));
         _showErrorDialog(
-            'Erreur lors de la soumission de l\'aire : ${response.statusCode}');
+            'Error submitting area: ${response.statusCode}');
       }
     } catch (error) {
       _showErrorDialog(
-          'Une erreur s\'est produite lors de la soumission: $error');
+          'An error occurred during submission: $error');
     }
   }
 
@@ -586,15 +664,24 @@ class CreateAreaPageState extends State<CreateAreaPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Erreur'),
-        content: Text(message),
+        backgroundColor: AppTheme.surface,
+        title: const Text('Error', style: TextStyle(color: Colors.white)),
+        content: Text(message, style: const TextStyle(color: Colors.white70)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('OK'),
+            child: const Text('OK', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
     );
+  }
+  
+  @override
+  void dispose() {
+    _controllers.forEach((key, controller) {
+      controller.dispose();
+    });
+    super.dispose();
   }
 }

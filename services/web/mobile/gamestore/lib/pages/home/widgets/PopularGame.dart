@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gamestore/pages/area/area_data.dart';
+import 'package:gamestore/theme/app_theme.dart';
+import 'package:glassmorphism/glassmorphism.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -38,6 +40,7 @@ class _PopularGameState extends State<PopularGame> {
               'id': area['id'].toString(),
               'name': area['name'],
               'description': area['description'],
+              'enabled': area['enabled'].toString(),
             });
           }
         }
@@ -80,9 +83,9 @@ class _PopularGameState extends State<PopularGame> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 270,
+      height: 220,
       child: ListView.separated(
-        padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 20),
+        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
         scrollDirection: Axis.horizontal,
         itemBuilder: (context, index) {
           if (index == areasData.length) {
@@ -90,24 +93,49 @@ class _PopularGameState extends State<PopularGame> {
               onTap: () {
                 Navigator.pushReplacementNamed(context, '/area');
               },
-              child: Card(
-                elevation: 5,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15),
+              child: GlassmorphicContainer(
+                width: 160,
+                height: 200,
+                borderRadius: 20,
+                blur: 20,
+                alignment: Alignment.center,
+                border: 2,
+                linearGradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    AppTheme.primary.withOpacity(0.3),
+                    AppTheme.primary.withOpacity(0.1),
+                  ],
                 ),
-                child: Container(
-                  padding: const EdgeInsets.all(15),
-                  decoration: BoxDecoration(
-                    color: Colors.green[400],
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  child: const Center(
-                    child: Icon(
-                      Icons.add,
-                      size: 36,
-                      color: Colors.white,
+                borderGradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.white.withOpacity(0.5),
+                    Colors.white.withOpacity(0.1),
+                  ],
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(15),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withOpacity(0.2),
+                      ),
+                      child: const Icon(Icons.add, size: 30, color: Colors.white),
                     ),
-                  ),
+                    const SizedBox(height: 10),
+                    const Text(
+                      "Create New",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    )
+                  ],
                 ),
               ),
             );
@@ -117,64 +145,108 @@ class _PopularGameState extends State<PopularGame> {
             onTap: () {
               _showDeleteConfirmationDialog(area);
             },
-            child: Card(
-              elevation: 5,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
+            child: GlassmorphicContainer(
+              width: 280,
+              height: 200,
+              borderRadius: 20,
+              blur: 20,
+              alignment: Alignment.center,
+              border: 2,
+              linearGradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.white.withOpacity(0.1),
+                  Colors.white.withOpacity(0.05),
+                ],
               ),
-              child: Container(
-                padding: const EdgeInsets.all(15),
-                decoration: BoxDecoration(
-                  color: Colors.grey[700],
-                  borderRadius: BorderRadius.circular(15),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      blurRadius: 5,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
-                ),
+              borderGradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.white.withOpacity(0.5),
+                  Colors.white.withOpacity(0.1),
+                ],
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      area['name'] ?? '',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 5),
-                    Text(
-                      area['description'] ?? '',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.white,
-                      ),
-                    ),
-                    Spacer(),
-                    ElevatedButton(
-                      onPressed: () {
-                        _showToggleStatusDialog(area);
-                      },
-                      style: ButtonStyle(
-                        backgroundColor:
-                            MaterialStateProperty.resolveWith<Color>(
-                          (Set<MaterialState> states) {
-                            if (area['enabled'] == 'true') {
-                              return Colors.red;
-                            } else {
-                              return Colors.green;
-                            }
-                          },
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            area['name'] ?? '',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                        foregroundColor:
-                            MaterialStateProperty.all<Color>(Colors.white),
-                      ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: area['enabled'] == 'true'
+                                ? Colors.green.withOpacity(0.3)
+                                : Colors.red.withOpacity(0.3),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: area['enabled'] == 'true'
+                                  ? Colors.green.withOpacity(0.5)
+                                  : Colors.red.withOpacity(0.5),
+                            ),
+                          ),
+                          child: Text(
+                            area['enabled'] == 'true' ? 'Active' : 'Inactive',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: area['enabled'] == 'true'
+                                  ? Colors.greenAccent
+                                  : Colors.redAccent,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Expanded(
                       child: Text(
-                          area['enabled'] == 'true' ? 'Désactivé' : 'Activé'),
+                        area['description'] ?? '',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.white.withOpacity(0.7),
+                        ),
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          _showToggleStatusDialog(area);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: area['enabled'] == 'true'
+                              ? Colors.red.withOpacity(0.8)
+                              : Colors.green.withOpacity(0.8),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                        ),
+                        child: Text(
+                          area['enabled'] == 'true' ? 'Disable' : 'Enable',
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -182,9 +254,7 @@ class _PopularGameState extends State<PopularGame> {
             ),
           );
         },
-        separatorBuilder: ((context, index) => const SizedBox(
-              width: 10,
-            )),
+        separatorBuilder: ((context, index) => const SizedBox(width: 15)),
         itemCount: areasData.length + 1,
       ),
     );
@@ -196,15 +266,16 @@ class _PopularGameState extends State<PopularGame> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text(isEnabled ? 'Désactiver Area' : 'Activer Area'),
+          backgroundColor: AppTheme.surface,
+          title: Text(isEnabled ? 'Disable Area' : 'Enable Area', style: const TextStyle(color: Colors.white)),
           content: Text(
-              'Voulez-vous vraiment ${isEnabled ? 'désactiver' : 'activer'} cette area ?'),
+              'Do you really want to ${isEnabled ? 'disable' : 'enable'} this area?', style: const TextStyle(color: Colors.white70)),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('Annuler'),
+              child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
             ),
             TextButton(
               onPressed: () {
@@ -212,8 +283,8 @@ class _PopularGameState extends State<PopularGame> {
                 Navigator.of(context).pop();
               },
               child: Text(
-                isEnabled ? 'Désactiver' : 'Activer',
-                style: TextStyle(color: Colors.blue),
+                isEnabled ? 'Disable' : 'Enable',
+                style: TextStyle(color: isEnabled ? AppTheme.error : AppTheme.primary),
               ),
             ),
           ],
@@ -222,6 +293,8 @@ class _PopularGameState extends State<PopularGame> {
     );
   }
 
+  // ... (Keep existing logic methods: fetchAreaIds, isAreaEnabled, _toggleAreaStatus, _deleteArea, _showDeleteConfirmationDialog but update dialog styles)
+  
   Future<List<int>> fetchAreaIds() async {
     final url = Uri.parse('${dotenv.env['BASE_URL']}/areas');
     final response = await http.get(url, headers: await _getHeaders());
@@ -278,8 +351,6 @@ class _PopularGameState extends State<PopularGame> {
             areasData[index]['enabled'] = (!currentState).toString();
           }
         });
-
-        print('Area with ID $areaId has been successfully ${action}d.');
       } else {
         print('Failed to ${action} area: ${response.statusCode}');
       }
@@ -304,8 +375,6 @@ class _PopularGameState extends State<PopularGame> {
         setState(() {
           areasData.removeWhere((element) => element['id'] == areaId);
         });
-
-        print('Area with ID $areaId has been successfully deleted.');
       } else {
         print('Failed to delete area: ${response.statusCode}');
       }
@@ -319,14 +388,15 @@ class _PopularGameState extends State<PopularGame> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Confirmation de suppression'),
-          content: const Text('Voulez-vous vraiment supprimer cette area ?'),
+          backgroundColor: AppTheme.surface,
+          title: const Text('Delete Confirmation', style: TextStyle(color: Colors.white)),
+          content: const Text('Do you really want to delete this area?', style: TextStyle(color: Colors.white70)),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('Annuler'),
+              child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
             ),
             TextButton(
               onPressed: () async {
@@ -334,7 +404,7 @@ class _PopularGameState extends State<PopularGame> {
                 Navigator.of(context).pop();
               },
               child:
-                  const Text('Supprimer', style: TextStyle(color: Colors.red)),
+                  Text('Delete', style: TextStyle(color: AppTheme.error)),
             ),
           ],
         );

@@ -1,13 +1,14 @@
 import 'dart:convert';
+import 'dart:ui';
+import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:gamestore/pages/area/ServiceLoginWebViewPage.dart';
 import 'package:gamestore/pages/register/register.dart';
-import './components/my_button.dart';
-import './components/my_textfield.dart';
-import './components/square_tile.dart';
+import 'package:gamestore/theme/app_theme.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:glassmorphism/glassmorphism.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -21,8 +22,10 @@ class _LoginPageState extends State<LoginPage> {
   final passwordController = TextEditingController();
   bool showEmailError = false;
   bool showPasswordError = false;
+  bool isLoading = false;
 
   void SignUserInput(BuildContext context) async {
+    setState(() => isLoading = true);
     final String url = '${dotenv.env['BASE_URL']}/login';
 
     final String email = usernameController.text;
@@ -44,9 +47,7 @@ class _LoginPageState extends State<LoginPage> {
       );
 
       if (response.statusCode == 200) {
-        print("Authentification réussie");
         final jsonResponse = jsonDecode(response.body);
-        print(jsonResponse);
         final String? token = jsonResponse["access_token"];
         if (token != null) {
           final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -58,140 +59,17 @@ class _LoginPageState extends State<LoginPage> {
           showPasswordError = false;
         });
         Navigator.pushReplacementNamed(context, '/home');
-      } else if (response.statusCode == 400) {
-        final errorMessage = jsonDecode(response.body)["error"];
-        print("Erreur d'authentification : $errorMessage");
+      } else {
         setState(() {
           showEmailError = true;
+          showPasswordError = true;
         });
       }
     } catch (e) {
       print("Erreur lors de la connexion: $e");
+    } finally {
+      setState(() => isLoading = false);
     }
-  }
-
-  Future<String> fetchToken() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getString('access_token') ?? '';
-  }
-
-  @override
-  void dispose() {
-    usernameController.dispose();
-    passwordController.dispose();
-    super.dispose();
-  }
-
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[300],
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: buildContent(context),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget buildContent(BuildContext context) {
-    return Column(
-    mainAxisAlignment: MainAxisAlignment.center,      children: <Widget>[
-        const SizedBox(
-          height: 50,
-        ),
-        Image.asset(
-          'assets/logo.png',
-          height: 100,
-        ),
-        const SizedBox(
-          height: 15,
-        ),
-        buildWelcomeText(),
-        const SizedBox(height: 15),
-        buildUsernameTextField(),
-        if (showEmailError)
-          const Text(
-            'Email incorrect. Veuillez réessayer.',
-            style: TextStyle(color: Colors.red),
-          ),
-        const SizedBox(height: 10),
-        buildPasswordTextField(),
-        if (showPasswordError)
-          const Text(
-            'Mot de passe incorrect. Veuillez réessayer.',
-            style: TextStyle(color: Colors.red),
-          ),
-        const SizedBox(height: 15),
-        buildSignInButton(context),
-        const SizedBox(height: 25),
-        buildDividerRow(),
-        const SizedBox(height: 25),
-        buildSocialMediaRow(context),
-        const SizedBox(
-          width: 50,
-        ),
-        buildRegisterRow(context),
-      ],
-    );
-  }
-
-  Widget buildWelcomeText() {
-    return Text(
-      "Bienvenue sur CENTRALIZE",
-      style: TextStyle(color: Colors.grey[600], fontSize: 24),
-    );
-  }
-
-  Widget buildUsernameTextField() {
-    return MyTextField(
-      controller: usernameController,
-      hintText: "Nom d'utilisateur",
-      obscureText: false,
-    );
-  }
-
-  Widget buildPasswordTextField() {
-    return MyTextField(
-      controller: passwordController,
-      hintText: "Mot de passe",
-      obscureText: true,
-    );
-  }
-
-  Widget buildSignInButton(BuildContext context) {
-    return MyButton(
-      onTap: () => SignUserInput(context),
-    );
-  }
-
-  Widget buildDividerRow() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 25.0),
-      child: Row(
-        children: [
-          Expanded(
-            child: Divider(
-              thickness: 0.5,
-              color: Colors.grey[400],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10.0),
-            child: Text('Ou Continuer Avec',
-                style: TextStyle(color: Colors.grey[700])),
-          ),
-          Expanded(
-            child: Divider(
-              thickness: 0.5,
-              color: Colors.grey[400],
-            ),
-          )
-        ],
-      ),
-    );
   }
 
   Future<String> getGoogleAuthURL() async {
@@ -210,70 +88,269 @@ class _LoginPageState extends State<LoginPage> {
       if (response.statusCode == 200) {
         final String googleAuthUrl = jsonDecode(response.body)['url'];
         return googleAuthUrl;
-      } else {
-        print(
-            "Erreur lors de la récupération de l'URL d'authentification Google : ${response.statusCode}");
-        return '';
       }
+      return '';
     } catch (e) {
-      print(
-          "Erreur lors de la récupération de l'URL d'authentification Google : $e");
       return '';
     }
   }
 
-  Widget buildSocialMediaRow(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        const SizedBox(width: 25),
-        GestureDetector(
-          onTap: () async {
-            String googleAuthURL = await getGoogleAuthURL();
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) =>
-                    WebViewPage(oauthLink: googleAuthURL, id: 1),
-              ),
-            );
-          },
-          child: const SquareTile(imagePath: 'assets/google.png'),
-        ),
-      ],
-    );
-  }
-
-  Widget buildRegisterRow(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const RegisterPage()),
-        );
-      },
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Stack(
         children: [
-          Text(
-            'Pas encore membre ?',
-            style: TextStyle(
-              height: 5,
-              color: Colors.grey[600],
-              fontWeight: FontWeight.bold,
+          // Animated Background
+          Container(
+            decoration: const BoxDecoration(
+              gradient: AppTheme.primaryGradient,
             ),
           ),
-          const SizedBox(
-            width: 4,
+          Positioned(
+            top: -100,
+            left: -100,
+            child: FadeInLeft(
+              duration: const Duration(seconds: 2),
+              child: Container(
+                width: 300,
+                height: 300,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppTheme.primary.withOpacity(0.4),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.primary.withOpacity(0.3),
+                      blurRadius: 100,
+                      spreadRadius: 20,
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
-          const Text(
-            'Inscrivez-vous maintenant !',
-            style: TextStyle(
-              height: 5,
-              color: Colors.blue,
-              fontWeight: FontWeight.bold,
+          Positioned(
+            bottom: -100,
+            right: -100,
+            child: FadeInRight(
+              duration: const Duration(seconds: 2),
+              child: Container(
+                width: 300,
+                height: 300,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppTheme.secondary.withOpacity(0.4),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.secondary.withOpacity(0.3),
+                      blurRadius: 100,
+                      spreadRadius: 20,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          
+          // Glassmorphic Content
+          Center(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    FadeInDown(
+                      child: Container(
+                        height: 120,
+                        width: 120,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white.withOpacity(0.1),
+                          border: Border.all(color: Colors.white.withOpacity(0.2)),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Image.asset('assets/logo.png'),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+                    
+                    FadeInUp(
+                      delay: const Duration(milliseconds: 200),
+                      child: GlassmorphicContainer(
+                        width: double.infinity,
+                        height: 550,
+                        borderRadius: 20,
+                        blur: 20,
+                        alignment: Alignment.center,
+                        border: 2,
+                        linearGradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              Colors.white.withOpacity(0.1),
+                              Colors.white.withOpacity(0.05),
+                            ],
+                            stops: const [0.1, 1],
+                        ),
+                        borderGradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Colors.white.withOpacity(0.5),
+                            Colors.white.withOpacity(0.1),
+                          ],
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(25.0),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                "Welcome Back",
+                                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              Text(
+                                "Sign in to continue",
+                                style: TextStyle(color: Colors.white.withOpacity(0.7)),
+                              ),
+                              const SizedBox(height: 30),
+                              
+                              // Inputs
+                              _buildTextField(usernameController, "Username", Icons.person),
+                              const SizedBox(height: 15),
+                              _buildTextField(passwordController, "Password", Icons.lock, isPassword: true),
+                              
+                              if (showEmailError || showPasswordError)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 10),
+                                  child: Text(
+                                    'Invalid credentials',
+                                    style: TextStyle(color: AppTheme.error),
+                                  ),
+                                ),
+                                
+                              const SizedBox(height: 30),
+                              
+                              // Login Button
+                              SizedBox(
+                                width: double.infinity,
+                                height: 55,
+                                child: ElevatedButton(
+                                  onPressed: isLoading ? null : () => SignUserInput(context),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppTheme.primary,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(15),
+                                    ),
+                                  ),
+                                  child: isLoading
+                                      ? const CircularProgressIndicator(color: Colors.white)
+                                      : const Text("Sign In", style: TextStyle(fontSize: 18)),
+                                ),
+                              ),
+                              
+                              const SizedBox(height: 20),
+                              
+                              // Social & Register
+                              Row(
+                                children: [
+                                  Expanded(child: Divider(color: Colors.white.withOpacity(0.2))),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                                    child: Text("OR", style: TextStyle(color: Colors.white.withOpacity(0.5))),
+                                  ),
+                                  Expanded(child: Divider(color: Colors.white.withOpacity(0.2))),
+                                ],
+                              ),
+                              
+                              const SizedBox(height: 20),
+                              
+                              GestureDetector(
+                                onTap: () async {
+                                  String googleAuthURL = await getGoogleAuthURL();
+                                  if (googleAuthURL.isNotEmpty) {
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (context) => WebViewPage(oauthLink: googleAuthURL, id: 1),
+                                      ),
+                                    );
+                                  }
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(color: Colors.white.withOpacity(0.2)),
+                                  ),
+                                  child: Image.asset('assets/google.png', height: 30),
+                                ),
+                              ),
+                              
+                              const SizedBox(height: 20),
+                              
+                              GestureDetector(
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => const RegisterPage()),
+                                ),
+                                child: RichText(
+                                  text: TextSpan(
+                                    text: "Don't have an account? ",
+                                    style: TextStyle(color: Colors.white.withOpacity(0.7)),
+                                    children: [
+                                      TextSpan(
+                                        text: "Register",
+                                        style: TextStyle(
+                                          color: AppTheme.primary,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildTextField(TextEditingController controller, String hint, IconData icon, {bool isPassword = false}) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: Colors.white.withOpacity(0.2)),
+      ),
+      child: TextField(
+        controller: controller,
+        obscureText: isPassword,
+        style: const TextStyle(color: Colors.white),
+        decoration: InputDecoration(
+          prefixIcon: Icon(icon, color: Colors.white.withOpacity(0.7)),
+          hintText: hint,
+          hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
+        ),
       ),
     );
   }

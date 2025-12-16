@@ -6,6 +6,8 @@ import 'package:gamestore/pages/home/home.dart';
 import 'package:gamestore/pages/register/register.dart';
 import 'package:gamestore/pages/area/area.dart';
 
+import 'package:gamestore/theme/app_theme.dart';
+
 Future<void> main() async {
   await dotenv.load();
   runApp(const MyApp());
@@ -19,6 +21,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Centralize',
       debugShowCheckedModeBanner: false,
+      theme: AppTheme.darkTheme,
       initialRoute: '/login',
       routes: {
         '/login': (context) => const LoginPage(),
