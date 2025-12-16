@@ -1,4 +1,4 @@
-# Centralize - Premium Mobile Experience (2025)
+# SaaS-Ready-Mobile-Automation-App (Centralize)
 
 <div style="display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;">
   <img src="/home/josue/.gemini/antigravity/brain/3cf68799-70c4-4cdd-b90e-053df9d657b8/malt_login_premium_1765924462359.png" alt="Login Screen" style="border-radius: 30px; width: 300px; height: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
